@@ -75,29 +75,6 @@ void PlayScene::update()
 		{
 			node->setLabelsEnabled(true);
 		}
-		//if (pathEnabled==false)
-		//{
-		//	keyCd = 0;
-		//	pathEnabled = true;
-		//	//m_computeTileCost();
-		//	m_findShortestPath();
-		//	for (auto node : m_pPathList)
-		//	{
-		//		node->setLabelsEnabled(true);
-		//	}
-		//}
-
-		//else if(pathEnabled==true)
-		//{
-		//	keyCd = 0;
-		//	pathEnabled = false;
-		//	for (auto node : m_pPathList)
-		//	{
-		//		node->setLabelsEnabled(false);
-		//	}
-		//	m_pPathList.clear();
-		//	m_pPathList.shrink_to_fit();
-		//}
 	}
 
 	//Move
@@ -211,8 +188,6 @@ void PlayScene::start()
 	addChild(m_pTarget);
 	m_computeTileCost();
 
-
-	//TODO
 	
 	m_Obs[0] = new Obstacle();
 	m_Obs[0]->getTransform()->position = m_getTile(3, 3)->getTransform()->position;
@@ -411,7 +386,6 @@ void PlayScene::GUI_Function()
 	ImGui::Separator();
 	if(ImGui::Button("Start"))
 	{
-		//m_findShortestPath();
 		isMoving = true;
 	}
 

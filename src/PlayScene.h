@@ -34,7 +34,7 @@ private:
 	Target* m_pTarget;
 	SpaceShip* m_pShip;
 	Label* inst[7];
-	Obstacle* m_Obs[5];
+	Obstacle* m_Obs[18];
 
 	//Ship* m_pShip;
 	

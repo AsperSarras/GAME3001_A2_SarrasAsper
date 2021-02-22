@@ -62,49 +62,42 @@ void PlayScene::update()
 			m_setGridEnabled(false);
 
 		keyCd = 0;
-		
-		//if (!gridEnabled)
-		//{
-		//	keyCd = 0;
-		//	gridEnabled = true;
-		//	m_setGridEnabled(gridEnabled);
-		//}
-		//else if (gridEnabled)
-		//{
-		//	keyCd = 0;
-		//	gridEnabled = false;
-		//	m_setGridEnabled(gridEnabled);
-		//}
 	}
 
 	//Display Shortest Path
 	if(EventManager::Instance().isKeyDown(SDL_SCANCODE_F) && keyCd >= 10)
 	{
-		m_findShortestPath();
 		keyCd = 0;
-	//	if (pathEnabled==false)
-	//	{
-	//		keyCd = 0;
-	//		pathEnabled = true;
-	//		//m_computeTileCost();
-	//		m_findShortestPath();
-	//		//for (auto node : m_pPathList)
-	//		//{
-	//		//	node->setLabelsEnabled(true);
-	//		//}
-	//	}
+		pathEnabled = true;
+		//m_computeTileCost();
+		m_findShortestPath();
+		for (auto node : m_pPathList)
+		{
+			node->setLabelsEnabled(true);
+		}
+		//if (pathEnabled==false)
+		//{
+		//	keyCd = 0;
+		//	pathEnabled = true;
+		//	//m_computeTileCost();
+		//	m_findShortestPath();
+		//	for (auto node : m_pPathList)
+		//	{
+		//		node->setLabelsEnabled(true);
+		//	}
+		//}
 
-	////	else if(pathEnabled==true)
-	////	{
-	////		keyCd = 0;
-	////		pathEnabled = false;
-	////		//for (auto node : m_pPathList)
-	////		//{
-	////		//	node->setLabelsEnabled(false);
-	////		//}
-	////		//m_pPathList.clear();
-	/////*		m_pPathList.shrink_to_fit();*/
-	////	}
+		//else if(pathEnabled==true)
+		//{
+		//	keyCd = 0;
+		//	pathEnabled = false;
+		//	for (auto node : m_pPathList)
+		//	{
+		//		node->setLabelsEnabled(false);
+		//	}
+		//	m_pPathList.clear();
+		//	m_pPathList.shrink_to_fit();
+		//}
 	}
 
 	//Move
@@ -117,7 +110,16 @@ void PlayScene::update()
 	//Reset
 	if (EventManager::Instance().isKeyDown(SDL_SCANCODE_R) && keyCd >= 10)//
 	{
+		auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
+
 		m_reset();
+		m_getTile(m_pTarget->getGridPosition())->setTileStatus(UNVISITED);
+		m_pTarget->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
+		m_pTarget->setGridPosition(15, 11);
+		m_getTile(m_pTarget->getGridPosition())->setTileStatus(GOAL);
+		m_computeTileCost();
+		SDL_SetRenderDrawColor(Renderer::Instance()->getRenderer(), 255, 255, 255, 255);
+		SDL_RenderPresent(Renderer::Instance()->getRenderer());
 	}
 	//Mouse
 		auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
@@ -129,8 +131,7 @@ void PlayScene::update()
 
 				xIn = (EventManager::Instance().getMousePosition().x / 40);
 				yIn = (EventManager::Instance().getMousePosition().y / 40);
-				//
-				//
+				std::cout << xIn << std::endl << yIn << std::endl;
 				if (EventManager::Instance().getMouseButton(0))
 				{
 					m_getTile(m_pShip->getGridPosition())->setTileStatus(UNVISITED);
@@ -138,7 +139,7 @@ void PlayScene::update()
 					m_pShip->getTransform()->position.y = (float)yIn * 40 + 20;
 					m_pShip->setGridPosition(xIn, yIn);
 					m_getTile(m_pShip->getGridPosition())->setTileStatus(START);
-					m_computeTileCost();
+					//m_computeTileCost();
 					SDL_SetRenderDrawColor(Renderer::Instance()->getRenderer(), 255, 255, 255, 255);
 					SDL_RenderPresent(Renderer::Instance()->getRenderer());
 				}
@@ -190,23 +191,8 @@ void PlayScene::start()
 
 	m_buildGrid();
 	
-	currentHeuristic = MANHATTAN;
+	currentHeuristic = EUCLIDEAN;
 	
-	m_Obs[0] = new Obstacle();
-	m_Obs[0]->getTransform()->position = m_getTile(3, 2)->getTransform()->position;
-	addChild(m_Obs[0]);
-	m_getTile(3, 2)->isObstacle=	true;
-	m_getTile(3, 3)->isObstacle = true;
-	m_getTile(2, 2)->isObstacle = true;
-	m_getTile(2, 3)->isObstacle = true;
-
-	m_Obs[1] = new Obstacle();
-	m_Obs[1]->getTransform()->position = m_getTile(10, 7)->getTransform()->position;
-	addChild(m_Obs[1]);
-	m_getTile(10, 7)->isObstacle = true;
-	m_getTile(10, 6)->isObstacle = true;
-	m_getTile(9, 7)->isObstacle = true;
-	m_getTile(9, 6)->isObstacle = true;
 
 	
 
@@ -225,6 +211,105 @@ void PlayScene::start()
 	addChild(m_pTarget);
 	m_computeTileCost();
 
+
+	//TODO
+	
+	m_Obs[0] = new Obstacle();
+	m_Obs[0]->getTransform()->position = m_getTile(3, 3)->getTransform()->position;
+	addChild(m_Obs[0]);
+	m_getTile(3, 2)->isObstacle = true;
+	m_getTile(3, 3)->isObstacle = true;
+	m_getTile(2, 2)->isObstacle = true;
+	m_getTile(2, 3)->isObstacle = true;
+
+	m_Obs[3] = new Obstacle();
+	m_Obs[3]->getTransform()->position = m_getTile(3, 7)->getTransform()->position;
+	addChild(m_Obs[3]);
+	m_getTile(3, 6)->isObstacle = true;
+	m_getTile(3, 7)->isObstacle = true;
+	m_getTile(2, 6)->isObstacle = true;
+	m_getTile(2, 7)->isObstacle = true;
+
+	m_Obs[1] = new Obstacle();
+	m_Obs[1]->getTransform()->position = m_getTile(3, 14)->getTransform()->position;
+	addChild(m_Obs[1]);
+	m_getTile(3, 13)->isObstacle = true;
+	m_getTile(3, 14)->isObstacle = true;
+	m_getTile(2, 13)->isObstacle = true;
+	m_getTile(2, 14)->isObstacle = true;
+
+	m_Obs[5] = new Obstacle();
+	m_Obs[5]->getTransform()->position = m_getTile(9, 3)->getTransform()->position;
+	addChild(m_Obs[5]);
+	m_getTile(9, 2)->isObstacle = true;
+	m_getTile(9, 3)->isObstacle = true;
+	m_getTile(8, 2)->isObstacle = true;
+	m_getTile(8, 3)->isObstacle = true;
+
+	m_Obs[7] = new Obstacle();
+	m_Obs[7]->getTransform()->position = m_getTile(9, 7)->getTransform()->position;
+	addChild(m_Obs[7]);
+	m_getTile(9, 6)->isObstacle = true;
+	m_getTile(9, 7)->isObstacle = true;
+	m_getTile(8, 6)->isObstacle = true;
+	m_getTile(8, 7)->isObstacle = true;
+
+	m_Obs[9] = new Obstacle();
+	m_Obs[9]->getTransform()->position = m_getTile(9, 1)->getTransform()->position;
+	addChild(m_Obs[9]);
+	m_getTile(9, 0)->isObstacle = true;
+	m_getTile(9, 1)->isObstacle = true;
+	m_getTile(8, 0)->isObstacle = true;
+	m_getTile(8, 1)->isObstacle = true;
+
+	m_Obs[11] = new Obstacle();
+	m_Obs[11]->getTransform()->position = m_getTile(9, 14)->getTransform()->position;
+	addChild(m_Obs[11]);
+	m_getTile(9, 13)->isObstacle = true;
+	m_getTile(9, 14)->isObstacle = true;
+	m_getTile(8, 13)->isObstacle = true;
+	m_getTile(8, 14)->isObstacle = true;
+
+	m_Obs[12] = new Obstacle();
+	m_Obs[12]->getTransform()->position = m_getTile(13, 5)->getTransform()->position;
+	addChild(m_Obs[12]);
+	m_getTile(12, 4)->isObstacle = true;
+	m_getTile(13, 5)->isObstacle = true;
+	m_getTile(12, 4)->isObstacle = true;
+	m_getTile(13, 5)->isObstacle = true;
+
+	m_Obs[13] = new Obstacle();
+	m_Obs[13]->getTransform()->position = m_getTile(17, 5)->getTransform()->position;
+	addChild(m_Obs[13]);
+	m_getTile(16, 4)->isObstacle = true;
+	m_getTile(17, 5)->isObstacle = true;
+	m_getTile(16, 4)->isObstacle = true;
+	m_getTile(17, 5)->isObstacle = true;
+
+	m_Obs[14] = new Obstacle();
+	m_Obs[14]->getTransform()->position = m_getTile(13, 11)->getTransform()->position;
+	addChild(m_Obs[14]);
+	m_getTile(12, 10)->isObstacle = true;
+	m_getTile(13, 11)->isObstacle = true;
+	m_getTile(12, 10)->isObstacle = true;
+	m_getTile(13, 11)->isObstacle = true;
+
+	m_Obs[15] = new Obstacle();
+	m_Obs[15]->getTransform()->position = m_getTile(17, 11)->getTransform()->position;
+	addChild(m_Obs[15]);
+	m_getTile(16, 10)->isObstacle = true;
+	m_getTile(17, 11)->isObstacle = true;
+	m_getTile(16, 10)->isObstacle = true;
+	m_getTile(17, 11)->isObstacle = true;
+
+	m_Obs[16] = new Obstacle();
+	m_Obs[16]->getTransform()->position = m_getTile(15, 8)->getTransform()->position;
+	addChild(m_Obs[16]);
+	m_getTile(14, 7)->isObstacle = true;
+	m_getTile(15, 8)->isObstacle = true;
+	m_getTile(14, 7)->isObstacle = true;
+	m_getTile(15, 8)->isObstacle = true;
+	
 	//Labels
 	const SDL_Color DarkYellow = { 0, 0, 0, 255 };
 	
@@ -240,7 +325,7 @@ void PlayScene::start()
 	inst[3]->setParent(this);
 	addChild(inst[3]);
 
-	inst[4] = new Label("Press F to Find and Display the Shortest Path", "Consolas", 20, DarkYellow, glm::vec2(420.0f, 120.0f));
+	inst[4] = new Label("Press F to Find and Display the Shortest Path (needs to reset to use again", "Consolas", 20, DarkYellow, glm::vec2(420.0f, 120.0f));
 	inst[4]->setParent(this);
 	addChild(inst[4]);
 
@@ -251,6 +336,7 @@ void PlayScene::start()
 	inst[6] = new Label("Press R to Reset All", "Consolas", 20, DarkYellow, glm::vec2(420.0f, 180.0f));
 	inst[6]->setParent(this);
 	addChild(inst[6]);
+
 	
 }
 
@@ -430,21 +516,81 @@ void PlayScene::m_computeTileCost() const
 
 	for (auto tile : m_pGrid)
 	{
-		switch (currentHeuristic)
-		{
-		case MANHATTAN:
-			//Manhattan Distance
-			dx = abs(tile->getGridPosition().x - m_pTarget->getGridPosition().x);
-			dy = abs(tile->getGridPosition().y - m_pTarget->getGridPosition().y);
-			distance = dx + dy;
-			break;
-		case EUCLIDEAN:
-			//Euclidiean Distance
-			distance = Util::distance(m_pTarget->getGridPosition(), tile->getGridPosition());
-			break;	
-		}
-		tile->setTileCost(distance);
+
+			switch (currentHeuristic)
+			{
+			case MANHATTAN:
+				//Manhattan Distance
+				dx = abs(tile->getGridPosition().x - m_pTarget->getGridPosition().x);
+				dy = abs(tile->getGridPosition().y - m_pTarget->getGridPosition().y);
+				distance = dx + dy;
+				break;
+			case EUCLIDEAN:
+				//Euclidiean Distance
+				distance = Util::distance(m_pTarget->getGridPosition(), tile->getGridPosition());
+				break;
+			}
+			tile->setTileCost(distance);
 	}
+	m_getTile(3, 2)->setTileCost(30.0f);
+	m_getTile(3, 3)->setTileCost(30.0f);
+	m_getTile(2, 2)->setTileCost(30.0f);
+	m_getTile(2, 3)->setTileCost(30.0f);
+	
+	m_getTile(3, 6)->setTileCost(30.0f);
+	m_getTile(3, 7)->setTileCost(30.0f);
+	m_getTile(2, 6)->setTileCost(30.0f);
+	m_getTile(2, 7)->setTileCost(30.0f);
+	
+	m_getTile(3, 13)->setTileCost(30.0f);
+	m_getTile(3, 14)->setTileCost(30.0f);
+	m_getTile(2, 13)->setTileCost(30.0f);
+	m_getTile(2, 14)->setTileCost(30.0f);
+	
+	m_getTile(9, 2)->setTileCost(30.0f);
+	m_getTile(9, 3)->setTileCost(30.0f);
+	m_getTile(8, 2)->setTileCost(30.0f);
+	m_getTile(8, 3)->setTileCost(30.0f);
+	
+	m_getTile(9, 6)->setTileCost(30.0f);
+	m_getTile(9, 7)->setTileCost(30.0f);
+	m_getTile(8, 6)->setTileCost(30.0f);
+	m_getTile(8, 7)->setTileCost(30.0f);
+	
+	m_getTile(9, 0)->setTileCost(30.0f);
+	m_getTile(9, 1)->setTileCost(30.0f);
+	m_getTile(8, 0)->setTileCost(30.0f);
+	m_getTile(8, 1)->setTileCost(30.0f);
+	
+	m_getTile(9, 13)->setTileCost(30.0f);
+	m_getTile(9, 14)->setTileCost(30.0f);
+	m_getTile(8, 13)->setTileCost(30.0f);
+	m_getTile(8, 14)->setTileCost(30.0f);
+	
+	m_getTile(12, 4)->setTileCost(30.0f);
+	m_getTile(12, 5)->setTileCost(30.0f);
+	m_getTile(13, 4)->setTileCost(30.0f);
+	m_getTile(13, 5)->setTileCost(30.0f);
+
+	m_getTile(16, 4)->setTileCost(30.0f);
+	m_getTile(16, 5)->setTileCost(30.0f);
+	m_getTile(17, 4)->setTileCost(30.0f);
+	m_getTile(17, 5)->setTileCost(30.0f);
+
+	m_getTile(12, 10)->setTileCost(30.0f);
+	m_getTile(12, 11)->setTileCost(30.0f);
+	m_getTile(13, 10)->setTileCost(30.0f);
+	m_getTile(13, 11)->setTileCost(30.0f);
+
+	m_getTile(16, 10)->setTileCost(30.0f);
+	m_getTile(16, 11)->setTileCost(30.0f);
+	m_getTile(17, 10)->setTileCost(30.0f);
+	m_getTile(17, 11)->setTileCost(30.0f);
+
+	m_getTile(14, 7)->setTileCost(30.0f);
+	m_getTile(14, 8)->setTileCost(30.0f);
+	m_getTile(15, 7)->setTileCost(30.0f);
+	m_getTile(15, 8)->setTileCost(30.0f);
 }
 
 void PlayScene::m_findShortestPath()
@@ -476,8 +622,7 @@ void PlayScene::m_findShortestPath()
 			{
 				if (neighbour->getTileStatus() != GOAL)
 				{
-
-					if ((neighbour->getTileCost() < min) && (neighbour->isObstacle == false))
+					if ((neighbour->getTileCost() < min))
 					{
 						min = neighbour->getTileCost();
 						minTile = neighbour;
@@ -485,14 +630,13 @@ void PlayScene::m_findShortestPath()
 					}
 					count++;
 				}
-				else
+				else if(neighbour->getTileStatus() == GOAL)
 				{
 					minTile = neighbour;
 					m_pPathList.push_back(minTile);
 					goalFound = true;
 					break;
 				}
-
 			}
 
 			//Remove the reference of the current tile open list
@@ -519,7 +663,7 @@ void PlayScene::m_findShortestPath()
 				}
 			}
 		}
-		//m_displayPathList();
+		m_displayPathList();
 	}
 }
 
@@ -562,6 +706,8 @@ void PlayScene::m_reset()
 {
 	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 
+	currentHeuristic = MANHATTAN;
+	
 	isMoving = false;
 
 	gridEnabled = false;
@@ -579,7 +725,22 @@ void PlayScene::m_reset()
 		}
 	}
 
-
+	for (auto node : m_pPathList)
+	{
+		if (node->getTileStatus() == OPEN)
+		{
+			node->setTileStatus(UNVISITED);
+			m_pOpenList.push_back(node);
+		}
+	}
+	for (auto node : m_pClosedList)
+	{
+		if (node->getTileStatus() == CLOSED)
+		{
+			node->setTileStatus(UNVISITED);
+			//m_pOpenList.push_back(node);
+		}
+	}
 		m_pPathList.clear();
 		m_pPathList.shrink_to_fit();
 
@@ -596,32 +757,6 @@ void PlayScene::m_reset()
 		m_pOpenList.shrink_to_fit();
 
 		moveCounter = 0;
-	for (auto node : m_pPathList)
-	{
-		if (node->getTileStatus() == OPEN)
-		{
-			node->setTileStatus(UNVISITED);
-			//m_pOpenList.push_back(node);
-		}
-	}
-	for (auto node : m_pClosedList)
-	{
-		if (node->getTileStatus() == CLOSED)
-		{
-			node->setTileStatus(UNVISITED);
-			//m_pOpenList.push_back(node);
-		}
-	}
-	//for (int r = 0; r < Config::ROW_NUM; r++)
-	//{
-	//	for (int c = 0; c < Config::COL_NUM; c++)
-	//	{
-	//		if (m_pGrid[r][c].getTileStatus()==OPEN|| m_pGrid[r][c].getTileStatus() == CLOSED)
-	//		{
-	//			m_pGrid[r][c].setTileStatus(UNVISITED);
-	//		}
-	//	}
-	//}
 
 	SDL_RenderPresent(Renderer::Instance()->getRenderer());
 	m_getTile(m_pShip->getGridPosition())->setTileStatus(UNVISITED);
@@ -634,6 +769,7 @@ void PlayScene::m_reset()
 	m_pTarget->getTransform()->position = m_getTile(15,11)->getTransform()->position + offset;
 	m_pTarget->setGridPosition(51,11);
 	m_getTile(m_pTarget->getGridPosition())->setTileStatus(GOAL);
+	currentHeuristic = EUCLIDEAN;
 	m_computeTileCost();
 	SDL_SetRenderDrawColor(Renderer::Instance()->getRenderer(), 255, 255, 255, 255);
 	SDL_RenderPresent(Renderer::Instance()->getRenderer());
